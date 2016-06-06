@@ -21,16 +21,39 @@
 
 #include <sound/soc.h>
 
+static const u32 pcm5102a_rates[] = {
+	8000, 11025, 16000, 22050, 32000, 44100, 48000, 64000, 88200, 96000,
+	176400, 192000, 352800, 384000,
+};
+
+static const struct snd_pcm_hw_constraint_list pcm5102a_constraints_rates = {
+	.count = ARRAY_SIZE(pcm5102a_rates),
+	.list = pcm5102a_rates,
+};
+
+static int pcm5102a_dai_startup(struct snd_pcm_substream *substream,
+	struct snd_soc_dai *dai)
+{
+	return snd_pcm_hw_constraint_list(substream->runtime, 0,
+					  SNDRV_PCM_HW_PARAM_RATE,
+					  &pcm5102a_constraints_rates);
+}
+
+static const struct snd_soc_dai_ops pcm5102a_dai_ops = {
+	.startup = pcm5102a_dai_startup,
+};
+
 static struct snd_soc_dai_driver pcm5102a_dai = {
 	.name = "pcm5102a-hifi",
 	.playback = {
 		.channels_min = 2,
 		.channels_max = 2,
-		.rates = SNDRV_PCM_RATE_8000_192000,
+		.rates = SNDRV_PCM_RATE_KNOT,
 		.formats = SNDRV_PCM_FMTBIT_S16_LE |
 			   SNDRV_PCM_FMTBIT_S24_LE |
 			   SNDRV_PCM_FMTBIT_S32_LE
 	},
+	.ops = &pcm5102a_dai_ops,
 };
 
 static struct snd_soc_codec_driver soc_codec_dev_pcm5102a;
